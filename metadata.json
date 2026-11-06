@@ -1,0 +1,8 @@
+{
+  "name": "NusaAgent - Hybrid AI Agent Platform",
+  "description": "Login-free hybrid AI assistant and autonomous agent platform with real-time tools, web research, code assistance, and file intelligence.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
