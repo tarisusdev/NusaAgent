@@ -1,12 +1,22 @@
 export type ProviderId =
   | "gemini"
   | "openai"
-  | "anthropic"
   | "openrouter"
+  | "anthropic"
+  | "ollama"
   | "groq"
   | "mistral"
-  | "ollama"
   | "lmstudio";
+
+export type ConnectionStatus =
+  | "connected"
+  | "invalid_key"
+  | "quota_exceeded"
+  | "network_error"
+  | "unsupported_endpoint"
+  | "unavailable"
+  | "unconfigured"
+  | "testing";
 
 export interface ModelInfo {
   id: string;
@@ -16,6 +26,16 @@ export interface ModelInfo {
   supportsTools?: boolean;
   supportsVision?: boolean;
   isPopular?: boolean;
+  isCustom?: boolean;
+}
+
+export interface ProviderCapabilities {
+  supportsStreaming: boolean;
+  supportsToolCalling: boolean;
+  supportsVision: boolean;
+  contextWindow: number;
+  isLocal: boolean;
+  requiresApiKey: boolean;
 }
 
 export interface ProviderMetadata {
@@ -36,11 +56,14 @@ export interface ProviderMetadata {
 
 export interface ProviderConfig {
   providerId: ProviderId;
-  apiKey?: string; // Stored encrypted in IndexedDB, in-memory plaintext
+  apiKey?: string; // Stored encrypted in IndexedDB, plaintext only in memory
   baseUrl?: string;
   selectedModel: string;
   customModel?: string;
   isDefault?: boolean;
+  connectionStatus?: ConnectionStatus;
+  lastTestedAt?: number;
+  lastLatencyMs?: number;
   createdAt?: number;
   updatedAt?: number;
 }
@@ -60,6 +83,9 @@ export interface StoredProviderConfig {
   customModel?: string;
   isDefault?: boolean;
   encryptedKey?: EncryptedCredential;
+  connectionStatus?: ConnectionStatus;
+  lastTestedAt?: number;
+  lastLatencyMs?: number;
   updatedAt: number;
 }
 
@@ -96,8 +122,41 @@ export interface ChatStreamCallbacks {
 }
 
 export interface ConnectionTestResult {
+  status?: ConnectionStatus;
   success: boolean;
   latencyMs: number;
   message: string;
   modelsFound?: number;
+  testedAt?: number;
+}
+
+export interface GenerateOptions {
+  temperature?: number;
+  maxTokens?: number;
+  tools?: ToolDefinitionParam[];
+  systemInstruction?: string;
+}
+
+export interface ProviderInterface {
+  id: ProviderId;
+  name: string;
+  defaultBaseUrl: string;
+  requiresApiKey: boolean;
+
+  connect(config: ProviderConfig): Promise<boolean>;
+  testConnection(config: ProviderConfig): Promise<ConnectionTestResult>;
+  listModels(config: ProviderConfig): Promise<ModelInfo[]>;
+  generateResponse(
+    messages: ChatMessageParam[],
+    config: ProviderConfig,
+    options?: GenerateOptions
+  ): Promise<string>;
+  streamResponse(
+    messages: ChatMessageParam[],
+    config: ProviderConfig,
+    callbacks: ChatStreamCallbacks,
+    signal?: AbortSignal,
+    options?: GenerateOptions
+  ): Promise<void>;
+  getCapabilities(modelId?: string): ProviderCapabilities;
 }

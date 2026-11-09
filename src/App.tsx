@@ -9,6 +9,7 @@ import { ToolsModal } from "./components/modals/ToolsModal";
 import { SettingsModal } from "./components/modals/SettingsModal";
 import { BYOKModal } from "./components/modals/BYOKModal";
 import { SetupBYOKModal } from "./components/modals/SetupBYOKModal";
+import { DocumentationModal } from "./components/modals/DocumentationModal";
 import {
   Conversation,
   Message,
@@ -34,6 +35,7 @@ import {
   getActiveProviderConfig,
 } from "./services/storage";
 import { getProviderMetadata } from "./services/providers/registry";
+import { providerManager } from "./services/provider-manager";
 import { runClientChat, runClientAutonomousAgent } from "./services/agent/clientEngine";
 
 export default function App() {
@@ -54,6 +56,7 @@ export default function App() {
   const [isRightPanelOpen, setIsRightPanelOpen] = useState(false);
   const [isToolsModalOpen, setIsToolsModalOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [isDocsModalOpen, setIsDocsModalOpen] = useState(false);
 
   // Execution states
   const [isGenerating, setIsGenerating] = useState(false);
@@ -76,14 +79,15 @@ export default function App() {
         const storedSettings = await getStoredSettings();
         setSettings(storedSettings);
 
-        // Load BYOK providers
-        const activeProv = await getActiveProviderConfig();
+        // Initialize BYOK providerManager
+        await providerManager.init();
+        const activeProv = providerManager.getActiveConfig();
         setActiveProviderConfig(activeProv);
 
         // Check if any provider is configured
-        const allProviders = await getStoredProviders();
-        if (allProviders.length === 0) {
-          // Open setup onboarding screen
+        const allProviders = providerManager.getAllConfigs();
+        const hasConfigured = allProviders.some((p) => p.apiKey || p.providerId === "ollama");
+        if (!hasConfigured) {
           setIsSetupModalOpen(true);
         }
 
@@ -104,11 +108,19 @@ export default function App() {
     }
 
     init();
+
+    const unsubscribe = providerManager.subscribe(() => {
+      setActiveProviderConfig(providerManager.getActiveConfig());
+    });
+
+    return () => {
+      unsubscribe();
+    };
   }, []);
 
   const refreshActiveProvider = async () => {
-    const active = await getActiveProviderConfig();
-    setActiveProviderConfig(active);
+    await providerManager.init();
+    setActiveProviderConfig(providerManager.getActiveConfig());
   };
 
   // 2. Load messages whenever active conversation changes
@@ -527,6 +539,7 @@ export default function App() {
         onOpenTools={() => setIsToolsModalOpen(true)}
         onOpenSettings={() => setIsSettingsModalOpen(true)}
         onOpenBYOK={() => setIsBYOKModalOpen(true)}
+        onOpenDocs={() => setIsDocsModalOpen(true)}
         isCollapsed={isSidebarCollapsed}
         onToggleCollapse={() => setIsSidebarCollapsed((prev) => !prev)}
         sessionId={sessionId}
@@ -623,6 +636,7 @@ export default function App() {
         }}
         sessionId={sessionId}
         onOpenBYOK={() => setIsBYOKModalOpen(true)}
+        onOpenDocs={() => setIsDocsModalOpen(true)}
         activeProviderName={activeProviderName}
         onClearAllData={async () => {
           await clearAllLocalData();
@@ -631,6 +645,13 @@ export default function App() {
           setActiveProviderConfig(null);
           createNewConversation();
         }}
+      />
+
+      {/* Documentation & Architecture Modal */}
+      <DocumentationModal
+        isOpen={isDocsModalOpen}
+        onClose={() => setIsDocsModalOpen(false)}
+        onOpenBYOK={() => setIsBYOKModalOpen(true)}
       />
     </div>
   );

@@ -10,6 +10,7 @@ import {
   Sliders,
   Shield,
   ArrowRight,
+  BookOpen,
 } from "lucide-react";
 import { AgentSettings } from "../../types";
 
@@ -21,6 +22,7 @@ interface SettingsModalProps {
   sessionId: string;
   onClearAllData: () => void;
   onOpenBYOK: () => void;
+  onOpenDocs?: () => void;
   activeProviderName?: string;
 }
 
@@ -32,6 +34,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   sessionId,
   onClearAllData,
   onOpenBYOK,
+  onOpenDocs,
   activeProviderName = "Not Configured",
 }) => {
   if (!isOpen) return null;
@@ -106,6 +109,31 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
+
+          {/* Documentation Link */}
+          {onOpenDocs && (
+            <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.06] flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-400">
+                  <BookOpen className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-xs font-semibold text-white">Architecture & Documentation</div>
+                  <div className="text-[11px] text-slate-400">Security whitepaper, BYOK guides & Ollama CORS</div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  onOpenDocs();
+                }}
+                className="px-3 py-1.5 rounded-lg bg-white/[0.06] hover:bg-white/[0.1] text-xs text-slate-200 transition"
+              >
+                Read Docs
+              </button>
+            </div>
+          )}
 
           {/* Max Autonomous Iterations */}
           <div className="space-y-2">

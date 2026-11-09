@@ -276,32 +276,126 @@ export async function runClientAutonomousAgent(params: {
 
   emit("status", { message: "Analyzing objective and formulating execution plan..." });
 
-  // 1. Task Planning Phase
-  const planSteps: PlanStepItem[] = [
-    {
-      id: "step-1",
-      title: "Task Analysis & Information Retrieval",
-      description: "Analyze goal and evaluate necessary facts or tools",
-      status: "pending",
-    },
-    {
-      id: "step-2",
-      title: "Execute Actions & Compute Results",
-      description: "Invoke appropriate tools and verify real outputs",
-      status: "pending",
-    },
-    {
-      id: "step-3",
-      title: "Synthesize Executive Report",
-      description: "Assemble comprehensive verified findings with citations",
-      status: "pending",
-    },
-  ];
+  // 1. Adaptive Task Planning Phase
+  const lowerObj = objective.toLowerCase();
+  let planSteps: PlanStepItem[];
+
+  if (modeId === "research" || /research|search|latest|news|what is|find out|investigate/.test(lowerObj)) {
+    planSteps = [
+      {
+        id: "step-1",
+        title: "Search Web Information & Fact-Finding",
+        description: "Query live web and news sources for recent verified findings",
+        expectedTool: "web_search",
+        status: "pending",
+      },
+      {
+        id: "step-2",
+        title: "Retrieve & Verify Source Content",
+        description: "Extract readable text from authoritative pages with SSRF protection",
+        expectedTool: "web_fetch",
+        status: "pending",
+      },
+      {
+        id: "step-3",
+        title: "Synthesize Findings & Compile Citations",
+        description: "Assemble comprehensive cited report with verifiable source URLs",
+        status: "pending",
+      },
+    ];
+  } else if (modeId === "coding" || /code|function|bug|audit|javascript|typescript|python|react/.test(lowerObj)) {
+    planSteps = [
+      {
+        id: "step-1",
+        title: "Static Security & Vulnerability Audit",
+        description: "Inspect code patterns for injection sinks, hardcoded secrets, and syntax",
+        expectedTool: "code_assistant",
+        status: "pending",
+      },
+      {
+        id: "step-2",
+        title: "Algorithmic Complexity & Architecture Review",
+        description: "Evaluate loop efficiency, Big-O bounds, and system modularity",
+        status: "pending",
+      },
+      {
+        id: "step-3",
+        title: "Synthesize Engineering Recommendations",
+        description: "Deliver production-ready drop-in code and architecture analysis",
+        status: "pending",
+      },
+    ];
+  } else if (modeId === "data_analyst" || /calculate|interest|math|formula|compound|percentage|sum|mean/.test(lowerObj)) {
+    planSteps = [
+      {
+        id: "step-1",
+        title: "Extract Numerical Parameters & Formulations",
+        description: "Identify values, rates, durations, and mathematical relationships",
+        status: "pending",
+      },
+      {
+        id: "step-2",
+        title: "Execute Verified Calculations",
+        description: "Compute exact figures and step-by-step breakdown using the calculator engine",
+        expectedTool: "calculator",
+        status: "pending",
+      },
+      {
+        id: "step-3",
+        title: "Synthesize Quantitative Breakdown",
+        description: "Format metrics into clear markdown tables and executive summary",
+        status: "pending",
+      },
+    ];
+  } else if (attachedFiles.length > 0 || /file|document|pdf|docx|contract|report/.test(lowerObj)) {
+    planSteps = [
+      {
+        id: "step-1",
+        title: "Extract Document Content & Metadata",
+        description: "Read uploaded session files and parse full text representations",
+        expectedTool: "file_reader",
+        status: "pending",
+      },
+      {
+        id: "step-2",
+        title: "Inspect Key Insights & Data Points",
+        description: "Evaluate core clauses, metrics, and quantitative findings",
+        status: "pending",
+      },
+      {
+        id: "step-3",
+        title: "Synthesize Executive Summary",
+        description: "Deliver structured analysis with key takeaways and conclusions",
+        status: "pending",
+      },
+    ];
+  } else {
+    planSteps = [
+      {
+        id: "step-1",
+        title: "Objective Scoping & Prerequisite Discovery",
+        description: "Analyze goal and evaluate necessary facts or tools",
+        status: "pending",
+      },
+      {
+        id: "step-2",
+        title: "Autonomous Tool Execution & Verification",
+        description: "Invoke appropriate tools and verify real outputs",
+        status: "pending",
+      },
+      {
+        id: "step-3",
+        title: "Compile Structured Executive Output",
+        description: "Assemble comprehensive verified findings with citations",
+        status: "pending",
+      },
+    ];
+  }
 
   emit("plan_created", {
     plan: {
       objective,
-      rationale: "Adaptive multi-step autonomous execution with verified tool invocation",
+      rationale: `Adaptive ${mode.name} execution plan tailored to objective parameters`,
       steps: planSteps,
     },
     objective,

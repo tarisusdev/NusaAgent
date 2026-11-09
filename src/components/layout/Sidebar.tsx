@@ -30,6 +30,7 @@ interface SidebarProps {
   onOpenTools: () => void;
   onOpenSettings: () => void;
   onOpenBYOK: () => void;
+  onOpenDocs?: () => void;
   isCollapsed: boolean;
   onToggleCollapse: () => void;
   sessionId: string;
@@ -54,6 +55,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onOpenTools,
   onOpenSettings,
   onOpenBYOK,
+  onOpenDocs,
   isCollapsed,
   onToggleCollapse,
   sessionId,
@@ -239,6 +241,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <Wrench className="w-4 h-4 text-slate-400" />
           {!isCollapsed && <span>Tool Registry (5)</span>}
         </button>
+
+        {onOpenDocs && (
+          <button
+            onClick={onOpenDocs}
+            className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs text-slate-400 hover:text-slate-200 hover:bg-white/[0.05] transition"
+            title="Documentation & Architecture"
+          >
+            <BookOpen className="w-4 h-4 text-slate-400" />
+            {!isCollapsed && <span>Documentation</span>}
+          </button>
+        )}
 
         <button
           onClick={onOpenSettings}

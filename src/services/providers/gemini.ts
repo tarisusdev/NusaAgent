@@ -115,13 +115,22 @@ export const geminiAdapter: ProviderAdapter = {
       if (msg.role === "system") {
         systemInstruction = msg.content;
       } else if (msg.role === "tool") {
+        let toolResponseObj: any = { content: msg.content };
+        try {
+          const parsed = JSON.parse(msg.content);
+          if (parsed && typeof parsed === "object") {
+            toolResponseObj = parsed;
+          }
+        } catch {
+          toolResponseObj = { content: msg.content };
+        }
         contents.push({
           role: "user",
           parts: [
             {
               functionResponse: {
                 name: msg.name || "tool",
-                response: { content: msg.content },
+                response: toolResponseObj,
               },
             },
           ],
